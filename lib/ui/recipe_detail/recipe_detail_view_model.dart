@@ -44,8 +44,47 @@ class RecipeDetailViewModel extends GetxController {
     return false;
   }
 
-  Future<void> toggleFavorite() async {
+  //Alterar
 
+  Future<void> toggleFavorite() async {
+    final currentUserId = recipe!.userId;
+    final recipeId = recipe!.id;
+
+    if (_isFavorite.value) {
+      await removeFromFavorites(recipeId, currentUserId);
+    } else {
+      await addToFavorites(recipeId, currentUserId);
+    }
+  }
+  //Alterar
+
+   Future<void> addToFavorites(String recipeId, String userId) async {
+    try {
+      _isLoading.value = true;
+      _errorMessage.value = '';
+      await _repository.insertFavoriteRecipe(recipeId, userId);
+      _isFavorite.value = true;
+    } catch (e) {
+      _errorMessage.value =
+          'Falha ao adicionar receita favorita: ${e.toString()}';
+    } finally {
+      _isLoading.value = false;
+    }
+  }
+  //Alterar
+
+  Future<void> removeFromFavorites(String recipeId, String userId) async {
+    try {
+      _isLoading.value = true;
+      _errorMessage.value = '';
+      await _repository.deleteFavoriteRecipe(recipeId, userId);
+      _isFavorite.value = false;
+    } catch (e) {
+      _errorMessage.value =
+          'Falha ao remover receita favorita: ${e.toString()}';
+    } finally {
+      _isLoading.value = false;
+    }
   }
 
 }
