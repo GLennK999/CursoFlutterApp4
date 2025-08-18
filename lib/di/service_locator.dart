@@ -4,6 +4,7 @@ import 'package:app4_receitas/data/services/auth_service.dart';
 import 'package:app4_receitas/data/services/recipe_service.dart';
 import 'package:app4_receitas/ui/auth/auth_view_model.dart';
 import 'package:app4_receitas/ui/favorites/favorites_view_model.dart';
+import 'package:app4_receitas/ui/profile/profile_view_model.dart';
 import 'package:app4_receitas/ui/recipe_detail/recipe_detail_view_model.dart';
 import 'package:app4_receitas/ui/recipes/recipes_view_model.dart';
 import 'package:get_it/get_it.dart';
@@ -29,5 +30,6 @@ Future<void> setupDependencies() async {
     getIt.registerLazySingleton<RecipeDetailViewModel>(() => RecipeDetailViewModel());
     getIt.registerLazySingleton<FavoritesViewModel>(() => FavoritesViewModel());
     getIt.registerLazySingleton<AuthViewModel>(() => AuthViewModel());
+    getIt.registerLazySingleton<ProfileViewModel>(() => ProfileViewModel());
 
 }

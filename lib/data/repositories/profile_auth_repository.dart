@@ -30,4 +30,19 @@ class AuthRepository extends GetxController {
       );
     });
   }
+
+  Future<Either<AppError, void>> signUp ({
+    required String email,
+    required String password,
+    required String username,
+    required String avatarUrl,
+  }) async {
+    final result = await _service.signUp(email: email, password: password, username: username, avatarUrl: avatarUrl);
+    return result.fold((left) => Left(left), (right) => const Right(null));
+  }
+
+  Future<Either<AppError, void>> signOut() async {
+    final result = await _service.signOut();
+    return result.fold((left) => Left(left), (right) => const Right(null));
+  }
 }

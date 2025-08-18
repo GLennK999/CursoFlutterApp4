@@ -1,10 +1,13 @@
 import 'package:app4_receitas/data/models/recipe.dart';
+import 'package:app4_receitas/data/repositories/profile_auth_repository.dart';
 import 'package:app4_receitas/data/repositories/recipe_repository.dart';
 import 'package:app4_receitas/di/service_locator.dart';
+import 'package:either_dart/either.dart';
 import 'package:get/get.dart';
 
 class RecipeDetailViewModel extends GetxController {
   final _repository = getIt<RecipeRepository>();
+  final _authRepository = getIt<AuthRepository>();
 
   //Estados
   final Rxn<Recipe> _recipe = Rxn<Recipe>();
@@ -23,42 +26,51 @@ class RecipeDetailViewModel extends GetxController {
       _isLoading.value = true;
       _errorMessage.value = '';
       _recipe.value = await _repository.getRecipeById(id);
-    } catch (e){
+
+      var userId = '';
+      await _authRepository.currentUser.fold(
+        (left) => _errorMessage.value = left.message,
+        (right) => userId = right.id,
+      );
+      _isFavorite.value = await isRecipeFavorite(id, userId);
+    } catch (e) {
       _errorMessage.value = 'Falha ao buscar receitas: ${e.toString()}';
-    }finally{
+    } finally {
       _isLoading.value = false;
     }
   }
 
   Future<bool> isRecipeFavorite(String recipeId, String userId) async {
-    try{
+    try {
       _isLoading.value = true;
       _errorMessage.value = '';
-        final favRecipes = await _repository.getFavoriteRecipes(userId);
+      final favRecipes = await _repository.getFavoriteRecipes(userId);
       return favRecipes.any((recipe) => recipe.id == recipeId);
-    }catch (e){
-      _errorMessage.value = 'Falha ao buscar receitas favoritas: ${e.toString()}';
-    }finally {
+    } catch (e) {
+      _errorMessage.value =
+          'Falha ao buscar receitas favoritas: ${e.toString()}';
+    } finally {
       _isLoading.value = false;
     }
     return false;
   }
 
-  //Alterar
-
   Future<void> toggleFavorite() async {
-    final currentUserId = recipe!.userId;
+    var userId = '';
+    await _authRepository.currentUser.fold(
+      (left) => _errorMessage.value = left.message,
+      (right) => userId = right.id,
+    );
     final recipeId = recipe!.id;
 
     if (_isFavorite.value) {
-      await removeFromFavorites(recipeId, currentUserId);
+      await removeFromFavorites(recipeId, userId);
     } else {
-      await addToFavorites(recipeId, currentUserId);
+      await addToFavorites(recipeId, userId);
     }
   }
-  //Alterar
 
-   Future<void> addToFavorites(String recipeId, String userId) async {
+  Future<void> addToFavorites(String recipeId, String userId) async {
     try {
       _isLoading.value = true;
       _errorMessage.value = '';
@@ -71,7 +83,6 @@ class RecipeDetailViewModel extends GetxController {
       _isLoading.value = false;
     }
   }
-  //Alterar
 
   Future<void> removeFromFavorites(String recipeId, String userId) async {
     try {
@@ -86,5 +97,4 @@ class RecipeDetailViewModel extends GetxController {
       _isLoading.value = false;
     }
   }
-
 }
