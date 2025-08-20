@@ -1,5 +1,3 @@
-
-
 import 'package:app4_receitas/di/service_locator.dart';
 import 'package:app4_receitas/ui/auth/auth_view_model.dart';
 import 'package:flutter/material.dart';
@@ -13,8 +11,42 @@ class AuthView extends StatefulWidget {
   State<AuthView> createState() => _AuthViewState();
 }
 
-class _AuthViewState extends State<AuthView> {
+class _AuthViewState extends State<AuthView>
+    with SingleTickerProviderStateMixin {
   final viewModel = getIt<AuthViewModel>();
+
+  late AnimationController _animationController;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController =
+        AnimationController(
+          vsync: this,
+          duration: const Duration(milliseconds: 1000),
+        )..addStatusListener((listener) {
+          if (listener == AnimationStatus.completed) {
+            _animationController.reverse();
+          } else if (listener == AnimationStatus.dismissed) {
+            _animationController.forward();
+          }
+        });
+
+    _animation = Tween<double>(
+      begin: 50.0,
+      end: 200.0,
+    ).animate(_animationController);
+    _animation.addListener(() => setState(() {}));
+
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -61,11 +93,7 @@ class _AuthViewState extends State<AuthView> {
   Widget _buildHeader() {
     return Column(
       children: [
-        Icon(
-          Icons.restaurant_menu,
-          size: 80,
-          color: Theme.of(context).colorScheme.primary,
-        ),
+        _animatedLogo(controller: _animationController),
         const SizedBox(height: 16),
         Text(
           'Eu Amo Cozinhar',
@@ -80,6 +108,40 @@ class _AuthViewState extends State<AuthView> {
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.w100),
         ),
       ],
+    );
+  }
+
+  Widget _animatedLogo({required AnimationController controller}) {
+    return AnimatedBuilder(
+      animation: controller,
+      builder: (context, child) {
+        final sizeTween = Tween(
+          begin: 50.0,
+          end: 200.0,
+        ).animate(CurvedAnimation(parent: controller, curve: Curves.easeInOut));
+
+        final colorTween = ColorTween(
+          begin: Theme.of(context).colorScheme.onError,
+          end: Theme.of(context).colorScheme.primary,
+        ).animate(CurvedAnimation(parent: controller, curve: Curves.bounceInOut));
+
+        final angleTween = Tween(
+          begin: 0.0,
+          end: 2 * 3.14,
+        ).animate(CurvedAnimation(parent: controller, curve: Curves.easeInOut));
+
+        return Transform.rotate(
+          angle: angleTween.value,
+          child: SizedBox(
+            height: 200,
+            child: Icon(
+              Icons.restaurant_menu,
+              size: sizeTween.value,
+              color: colorTween.value,
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -186,7 +248,7 @@ class _AuthViewState extends State<AuthView> {
           ),
           textAlign: TextAlign.center,
         ),
-      )
+      ),
     );
   }
 
@@ -210,7 +272,10 @@ class _AuthViewState extends State<AuthView> {
               )
             : Text(
                 viewModel.isLoginMode ? 'ENTRAR' : 'CADASTRAR',
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
       ),
     );

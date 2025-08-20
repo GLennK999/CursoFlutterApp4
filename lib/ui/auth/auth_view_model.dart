@@ -77,7 +77,7 @@ class AuthViewModel extends GetxController {
 
   Future<void> submit() async {
     final valid = formKey.currentState?.validate() ?? false;
-    if (!valid) return;    
+    if (!valid) return;
     _isSubmitting.value = true;
     if (isLoginMode) {
       await login();
@@ -92,17 +92,38 @@ class AuthViewModel extends GetxController {
       email: emailController.text,
       password: passwordController.text,
     );
-    response.fold((left) {
-      _errorMessage.value = left.message;
-      print(errorMessage);
-    }, (right) {
-      print(right);
-      return;
-    });
+    response.fold(
+      (left) {
+        _errorMessage.value = left.message;
+        print(errorMessage);
+      },
+      (right) {
+        print(right);
+        _clearFields();
+        return;
+      },
+    );
   }
 
   Future<void> register() async {
-    // TODO: lógica registro
+    final response = await _repository.signUp(
+      email: emailController.text,
+      password: passwordController.text,
+      username: usernameController.text,
+      avatarUrl: avatarUrlController.text,
+    );
+    response.fold(
+      (left) {
+        _errorMessage.value = left.message;
+        print(errorMessage);
+      },
+      (right) {
+        _errorMessage.value =
+            'E-mail de confirmação enviado. Verifique sua caixa de entrada';
+        _isLoginMode.value = true;
+        _clearFields();
+      },
+    );
   }
 
   @override
@@ -120,8 +141,7 @@ class AuthViewModel extends GetxController {
     _isSubmitting.value = false;
     _clearFields();
     _obscurePassword.value = true;
-    update();    // Necessário para atualizar a UI
-
+    update(); // Necessário para atualizar a UI
   }
 
   void _clearFields() {
@@ -131,5 +151,4 @@ class AuthViewModel extends GetxController {
     usernameController.clear();
     avatarUrlController.clear();
   }
-  
 }
